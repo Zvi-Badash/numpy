@@ -166,7 +166,8 @@ def test_seedsequence():
 
 
 def test_generator_spawning():
-    """Test spawning new generators and bit_generators directly."""
+    """ Test spawning new generators and bit_generators directly.
+    """
     rng = np.random.default_rng()
     seq = rng.bit_generator.seed_seq
     new_ss = seq.spawn(5)
@@ -226,20 +227,20 @@ class Base:
             data = []
             for line in csv:
                 data.append(int(line.split(',')[-1].strip(), 0))
-            return {'seed': seed, "data": np.array(data, dtype=cls.dtype)}
+            return {'seed': seed, 'data': np.array(data, dtype=cls.dtype)}
 
     def test_raw(self):
         bit_generator = self.bit_generator(*self.data1['seed'])
         uints = bit_generator.random_raw(1000)
-        assert_equal(uints, self.data1["data"])
+        assert_equal(uints, self.data1['data'])
 
         bit_generator = self.bit_generator(*self.data1['seed'])
         uints = bit_generator.random_raw()
-        assert_equal(uints, self.data1["data"][0])
+        assert_equal(uints, self.data1['data'][0])
 
         bit_generator = self.bit_generator(*self.data2['seed'])
         uints = bit_generator.random_raw(1000)
-        assert_equal(uints, self.data2["data"])
+        assert_equal(uints, self.data2['data'])
 
     def test_random_raw(self):
         bit_generator = self.bit_generator(*self.data1['seed'])
@@ -252,48 +253,50 @@ class Base:
         n = 25
         rs = RandomState(self.bit_generator(*self.data1['seed']))
         gauss = rs.standard_normal(n)
-        assert_allclose(gauss, gauss_from_uint(self.data1["data"], n, self.bits))
+        assert_allclose(gauss,
+                        gauss_from_uint(self.data1['data'], n, self.bits))
 
         rs = RandomState(self.bit_generator(*self.data2['seed']))
         gauss = rs.standard_normal(25)
-        assert_allclose(gauss, gauss_from_uint(self.data2["data"], n, self.bits))
+        assert_allclose(gauss,
+                        gauss_from_uint(self.data2['data'], n, self.bits))
 
     def test_uniform_double(self):
         rs = Generator(self.bit_generator(*self.data1['seed']))
-        vals = uniform_from_uint(self.data1["data"], self.bits)
+        vals = uniform_from_uint(self.data1['data'], self.bits)
         uniforms = rs.random(len(vals))
         assert_allclose(uniforms, vals)
         assert_equal(uniforms.dtype, np.float64)
 
         rs = Generator(self.bit_generator(*self.data2['seed']))
-        vals = uniform_from_uint(self.data2["data"], self.bits)
+        vals = uniform_from_uint(self.data2['data'], self.bits)
         uniforms = rs.random(len(vals))
         assert_allclose(uniforms, vals)
         assert_equal(uniforms.dtype, np.float64)
 
     def test_uniform_float(self):
         rs = Generator(self.bit_generator(*self.data1['seed']))
-        vals = uniform32_from_uint(self.data1["data"], self.bits)
+        vals = uniform32_from_uint(self.data1['data'], self.bits)
         uniforms = rs.random(len(vals), dtype=np.float32)
         assert_allclose(uniforms, vals)
         assert_equal(uniforms.dtype, np.float32)
 
         rs = Generator(self.bit_generator(*self.data2['seed']))
-        vals = uniform32_from_uint(self.data2["data"], self.bits)
+        vals = uniform32_from_uint(self.data2['data'], self.bits)
         uniforms = rs.random(len(vals), dtype=np.float32)
         assert_allclose(uniforms, vals)
         assert_equal(uniforms.dtype, np.float32)
 
     def test_repr(self):
         rs = Generator(self.bit_generator(*self.data1['seed']))
-        assert "Generator" in repr(rs)
-        assert f"{id(rs):#x}".upper().replace('X', 'x') in repr(rs)
+        assert 'Generator' in repr(rs)
+        assert f'{id(rs):#x}'.upper().replace('X', 'x') in repr(rs)
 
     def test_str(self):
         rs = Generator(self.bit_generator(*self.data1['seed']))
-        assert "Generator" in str(rs)
+        assert 'Generator' in str(rs)
         assert str(self.bit_generator.__name__) in str(rs)
-        assert f"{id(rs):#x}".upper().replace('X', 'x') not in str(rs)
+        assert f'{id(rs):#x}'.upper().replace('X', 'x') not in str(rs)
 
     def test_pickle(self):
         import pickle
@@ -303,10 +306,8 @@ class Base:
         bitgen_pkl = pickle.dumps(bit_generator)
         reloaded = pickle.loads(bitgen_pkl)
         reloaded_state = reloaded.state
-        assert_array_equal(
-            Generator(bit_generator).standard_normal(1000),
-            Generator(reloaded).standard_normal(1000),
-        )
+        assert_array_equal(Generator(bit_generator).standard_normal(1000),
+                           Generator(reloaded).standard_normal(1000))
         assert bit_generator is not reloaded
         assert_state_equal(reloaded_state, state)
 
@@ -335,12 +336,12 @@ class Base:
     def test_invalid_state_type(self):
         bit_generator = self.bit_generator(*self.data1['seed'])
         with pytest.raises(TypeError):
-            bit_generator.state = {"1"}
+            bit_generator.state = {'1'}
 
     def test_invalid_state_value(self):
         bit_generator = self.bit_generator(*self.data1['seed'])
         state = bit_generator.state
-        state["bit_generator"] = "otherBitGenerator"
+        state['bit_generator'] = 'otherBitGenerator'
         with pytest.raises(ValueError):
             bit_generator.state = state
 
@@ -359,11 +360,11 @@ class Base:
     def test_benchmark(self):
         bit_generator = self.bit_generator(*self.data1['seed'])
         bit_generator._benchmark(1)
-        bit_generator._benchmark(1, "double")
+        bit_generator._benchmark(1, 'double')
         with pytest.raises(ValueError):
-            bit_generator._benchmark(1, "int32")
+            bit_generator._benchmark(1, 'int32')
 
-    @pytest.mark.skipif(MISSING_CFFI, reason="cffi not available")
+    @pytest.mark.skipif(MISSING_CFFI, reason='cffi not available')
     def test_cffi(self):
         bit_generator = self.bit_generator(*self.data1['seed'])
         cffi_interface = bit_generator.cffi
@@ -371,7 +372,7 @@ class Base:
         other_cffi_interface = bit_generator.cffi
         assert other_cffi_interface is cffi_interface
 
-    @pytest.mark.skipif(MISSING_CTYPES, reason="ctypes not available")
+    @pytest.mark.skipif(MISSING_CTYPES, reason='ctypes not available')
     def test_ctypes(self):
         bit_generator = self.bit_generator(*self.data1['seed'])
         ctypes_interface = bit_generator.ctypes
@@ -387,25 +388,25 @@ class Base:
         assert_state_equal(state, alt_state[0])
         assert isinstance(alt_state[1], SeedSequence)
 
-
 class TestPhilox(Base):
     @classmethod
     def setup_class(cls):
         cls.bit_generator = Philox
         cls.bits = 64
         cls.dtype = np.uint64
-        cls.data1 = cls._read_csv(join(pwd, "./data/philox-testset-1.csv"))
-        cls.data2 = cls._read_csv(join(pwd, "./data/philox-testset-2.csv"))
+        cls.data1 = cls._read_csv(
+            join(pwd, './data/philox-testset-1.csv'))
+        cls.data2 = cls._read_csv(
+            join(pwd, './data/philox-testset-2.csv'))
         cls.seed_error_type = TypeError
         cls.invalid_init_types = []
-        cls.invalid_init_values = [(1, None, 1), (-1,), (None, None, 2**257 + 1)]
+        cls.invalid_init_values = [(1, None, 1), (-1,), (None, None, 2 ** 257 + 1)]
 
     def test_set_key(self):
         bit_generator = self.bit_generator(*self.data1['seed'])
         state = bit_generator.state
-        keyed = self.bit_generator(
-            counter=state["state"]["counter"], key=state["state"]["key"]
-        )
+        keyed = self.bit_generator(counter=state['state']['counter'],
+                                   key=state['state']['key'])
         assert_state_equal(bit_generator.state, keyed.state)
 
 
@@ -415,8 +416,8 @@ class TestPCG64(Base):
         cls.bit_generator = PCG64
         cls.bits = 64
         cls.dtype = np.uint64
-        cls.data1 = cls._read_csv(join(pwd, "./data/pcg64-testset-1.csv"))
-        cls.data2 = cls._read_csv(join(pwd, "./data/pcg64-testset-2.csv"))
+        cls.data1 = cls._read_csv(join(pwd, './data/pcg64-testset-1.csv'))
+        cls.data2 = cls._read_csv(join(pwd, './data/pcg64-testset-2.csv'))
         cls.seed_error_type = (ValueError, TypeError)
         cls.invalid_init_types = [(3.2,), ([None],), (1, None)]
         cls.invalid_init_values = [(-1,)]
@@ -493,8 +494,8 @@ class TestMT19937(Base):
         cls.bit_generator = MT19937
         cls.bits = 32
         cls.dtype = np.uint32
-        cls.data1 = cls._read_csv(join(pwd, "./data/mt19937-testset-1.csv"))
-        cls.data2 = cls._read_csv(join(pwd, "./data/mt19937-testset-2.csv"))
+        cls.data1 = cls._read_csv(join(pwd, './data/mt19937-testset-1.csv'))
+        cls.data2 = cls._read_csv(join(pwd, './data/mt19937-testset-2.csv'))
         cls.seed_error_type = ValueError
         cls.invalid_init_types = []
         cls.invalid_init_values = [(-1,)]
@@ -511,14 +512,15 @@ class TestMT19937(Base):
         rs = Generator(self.bit_generator(*self.data1['seed']))
         bit_generator = rs.bit_generator
         state = bit_generator.state
-        desired = rs.integers(2**16)
-        tup = (state["bit_generator"], state["state"]["key"], state["state"]["pos"])
+        desired = rs.integers(2 ** 16)
+        tup = (state['bit_generator'], state['state']['key'],
+               state['state']['pos'])
         bit_generator.state = tup
-        actual = rs.integers(2**16)
+        actual = rs.integers(2 ** 16)
         assert_equal(actual, desired)
         tup = tup + (0, 0.0)
         bit_generator.state = tup
-        actual = rs.integers(2**16)
+        actual = rs.integers(2 ** 16)
         assert_equal(actual, desired)
 
 
@@ -528,8 +530,10 @@ class TestSFC64(Base):
         cls.bit_generator = SFC64
         cls.bits = 64
         cls.dtype = np.uint64
-        cls.data1 = cls._read_csv(join(pwd, "./data/sfc64-testset-1.csv"))
-        cls.data2 = cls._read_csv(join(pwd, "./data/sfc64-testset-2.csv"))
+        cls.data1 = cls._read_csv(
+            join(pwd, './data/sfc64-testset-1.csv'))
+        cls.data2 = cls._read_csv(
+            join(pwd, './data/sfc64-testset-2.csv'))
         cls.seed_error_type = (ValueError, TypeError)
         cls.invalid_init_types = [(3.2,), ([None],), (1, None)]
         cls.invalid_init_values = [(-1,)]
@@ -540,8 +544,13 @@ class TestSFC64(Base):
         import pickle
 
         expected_state = np.array(
-            [9957867060933711493, 532597980065565856, 14769588338631205282, 13],
-            dtype=np.uint64,
+            [
+                9957867060933711493,
+                532597980065565856,
+                14769588338631205282,
+                13
+            ],
+            dtype=np.uint64
         )
 
         base_path = os.path.split(os.path.abspath(__file__))[0]
@@ -594,7 +603,6 @@ class DistributionPropertiesBase:
     """
     Base class for testing mean/variance-based distribution properties using
     external CSV datasets that encode (mean, var, seed) triplets.
-
     Subclasses must implement:
     - get_data_filename(self) -> str
     - draw_samples(self, mu: float, var: float, seed: int, size: int) -> np.ndarray
@@ -605,20 +613,17 @@ class DistributionPropertiesBase:
         """
         Lightweight reader for CSV files where each row contains one or more
         64-bit words encoded as hex strings (e.g. "0x0123...").
-
         Expected CSV format:
             header_row
             <hexword>,...
             <hexword>,...
             ...
-
         Decoding behavior:
         - Each selected hex word is parsed as a 64-bit integer (base 16).
         - The integer is converted to 8 big-endian bytes.
         - Bytes from multiple words are concatenated in row order.
         - Trailing NUL bytes (b'\\0') are stripped.
         - The result is decoded to UTF-8 using 'ignore' for invalid sequences.
-
         Examples:
             hf = HexFile("data.csv")
             hf[0]                -> decode first column of row 0 (string)
@@ -697,7 +702,6 @@ class DistributionPropertiesBase:
         def _decode_hex_words(hex_words) -> str:
             """
             Decode an iterable of hex-strings into a UTF-8 string.
-
             Each hex word is parsed as a 64-bit integer (base 16), converted to
             8 big-endian bytes and concatenated. Trailing NUL bytes are removed
             before decoding with 'utf-8' using 'ignore' for invalid sequences.
